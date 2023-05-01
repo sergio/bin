@@ -1,0 +1,14 @@
+#!/bin/bash
+
+file=$1
+
+if [[ "$file" == *.c?? ]] 
+then
+	m=$(openssl x509 -in "$file" -noout -modulus | openssl sha1)
+	echo "$file modulus: $m"
+else
+	m=$(openssl rsa -in "$file" -noout -modulus | openssl sha1)
+	echo "$file modulus: $m"
+fi
+
+
