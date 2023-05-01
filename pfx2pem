@@ -1,0 +1,40 @@
+#!/bin/bash
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+pfxfile=$1
+
+if ! [[ $pfxfile =~ \.pfx$ ]]; then
+    echo 'Error: Expected file with .pfx extension.' >&2 # write to stderr
+    exit 1
+fi
+
+if [[ $# -gt 1 ]]
+then
+    password=$2
+else
+    echo -n "Enter password:"
+    read -r -s password
+    echo
+fi
+
+basefile=${pfxfile%.*}
+
+openssl pkcs12 -in "$pfxfile" -chain -nokeys -passin "pass:$password" \
+    | awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' \
+    > "$basefile.chain.cer"
+
+openssl pkcs12 -in "$pfxfile" -clcerts -nokeys -passin "pass:$password" \
+    | awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' \
+    > "$basefile.cer"
+
+openssl pkcs12 -in "$pfxfile" -cacerts -nokeys -passin "pass:$password" \
+    | awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' \
+    > "$basefile.ca.cer"
+
+openssl pkcs12 -in "$pfxfile" -nocerts -nodes -passin "pass:$password" \
+    | awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' \
+    > "$basefile.key"
