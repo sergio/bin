@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if ! command -v shellcheck &> /dev/null; then
+    echo "shellcheck not found. Please install shellcheck and try again."
+    echo "brew install shellcheck"
+    exit 1
+fi
+
+for file in $(git diff --cached --name-only)
+do
+    if ! shellcheck "$file"; then
+        echo "ShellCheck found errors in $file. Aborting commit."
+        exit 1
+    fi
+done
